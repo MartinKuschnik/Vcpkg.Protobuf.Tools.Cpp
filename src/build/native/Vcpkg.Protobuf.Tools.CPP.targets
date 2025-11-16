@@ -1,0 +1,75 @@
+<?xml version="1.0"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <ItemGroup>
+        <!-- 
+		Custom project property page. (currently not needed.)
+		
+		<PropertyPageSchema Include="$(MSBuildThisFileDirectory)Vcpkg.Protobuf.Tools.CPP.xml">
+            <Context>Project</Context>
+        </PropertyPageSchema> 
+		-->
+        <PropertyPageSchema Include="$(MSBuildThisFileDirectory)Vcpkg.Protobuf.Tools.CPP.proto.xml" />
+        <AvailableItemName Include="ProtobufCompile">
+            <Targets>ProtobufCompile</Targets>
+        </AvailableItemName>
+    </ItemGroup>
+    <PropertyGroup>
+        <CleanDependsOn>
+			ProtobufClean;
+			$(CleanDependsOn)
+	</CleanDependsOn>
+    </PropertyGroup>
+    <ItemDefinitionGroup>
+        <ClCompile>
+            <AdditionalIncludeDirectories>%(ClCompile.AdditionalIncludeDirectories);$(IntDir)protoc\</AdditionalIncludeDirectories>
+        </ClCompile>
+		<Link>
+            <AdditionalDependencies>ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+        </Link>
+    </ItemDefinitionGroup>
+	
+	<PropertyGroup Condition="$(VcpkgInstalledDir)==''">
+		<VcpkgInstallDir>$(VcpkgRoot)\installed\x64-windows\</VcpkgInstallDir>
+	</PropertyGroup>
+	
+	<PropertyGroup Condition="$(VcpkgInstalledDir)!=''">
+		<VcpkgInstallDir>$(VcpkgInstalledDir)\x64-windows\</VcpkgInstallDir>
+	</PropertyGroup>
+	
+	<PropertyGroup Condition="$(VcpkgEnableManifest)!='true'">
+		<ProtobufAfterTargets>PrepareForBuild</ProtobufAfterTargets>
+	</PropertyGroup>
+	
+	<PropertyGroup Condition="$(VcpkgEnableManifest)=='true'">
+		<ProtobufAfterTargets>VcpkgInstallManifestDependencies</ProtobufAfterTargets>
+	</PropertyGroup>
+	
+    <Target Name="ProtobufCompile" AfterTargets="$(ProtobufAfterTargets)" Inputs="@(ProtobufCompile)" Outputs="@(ProtobufCompile->'$(ProtobufOutDir)%(Filename).pb.h');@(ProtobufCompile->'$(ProtobufOutDir)%(Filename).pb.cc')">
+			
+	<PropertyGroup>
+		<ProtobufDir>$(VcpkgInstallDir)tools\protobuf\</ProtobufDir>	
+        <ProtoPath>%(ProtobufCompile.RootDir)\%(ProtobufCompile.Directory)</ProtoPath>
+		<ProtobufOutDir>$(IntDir)protoc\</ProtobufOutDir>
+	</PropertyGroup>
+				
+        <Error Condition="$(VcpkgEnabled)!='true'" Text="Vcpkg not enabled. See https://github.com/microsoft/vcpkg#getting-started for more details." />
+
+        <MakeDir Directories="$(ProtobufOutDir)" Condition="!Exists('$(ProtobufOutDir)')" />		
+        <Exec Command="&quot;$(ProtobufDir)protoc.exe&quot; --cpp_out=&quot;$(ProtobufOutDir.Trim('\\'))&quot; --proto_path=&quot;$(ProtoPath.Trim('\\'))&quot; &quot;%(ProtobufCompile.FullPath)&quot;" />
+        
+	<ItemGroup>
+            <ClInclude WarningLevel="TurnOffAllWarnings" Include="@(ProtobufCompile->'$(ProtobufOutDir)%(Filename).pb.h" />
+            <ClCompile WarningLevel="TurnOffAllWarnings" Include="@(ProtobufCompile->'$(ProtobufOutDir)%(Filename).pb.cc')" />
+        </ItemGroup>
+		
+    </Target>
+	
+    <Target Name="ProtobufClean">
+	    <PropertyGroup>
+			<ProtobufOutDir>$(IntDir)protoc\</ProtobufOutDir>
+		</PropertyGroup>
+			
+        <Delete Files="@(ProtobufCompile->'$(ProtobufOutDir)%(Filename).pb.h')" />
+        <Delete Files="@(ProtobufCompile->'$(ProtobufOutDir)%(Filename).pb.cc')" />
+    </Target>
+</Project>

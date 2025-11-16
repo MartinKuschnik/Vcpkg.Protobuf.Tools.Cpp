@@ -1,0 +1,29 @@
+name: NuGet
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  release:
+    types:
+      - published
+
+jobs:
+  build:
+
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: nuget/setup-nuget@v1
+      with:
+        nuget-api-key: ${{ secrets.NUGET_API_KEY }}
+        nuget-version: '5.8'
+        
+    - name: Create NuGet package    
+      run: nuget pack src\Vcpkg.Protobuf.Tools.CPP.nuspec
+      
+    - name: Push NuGet package    
+      if: github.event.action == 'published'
+      run: nuget push Vcpkg.Protobuf.Tools.CPP.*.nupkg -source https://api.nuget.org/v3/index.json -Verbosity detailed

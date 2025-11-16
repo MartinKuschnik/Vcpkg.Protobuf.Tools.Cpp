@@ -1,0 +1,2 @@
+# Vcpkg.Protobuf.Tools.Cpp [![build](https://github.com/MartinKuschnik/Vcpkg.Protobuf.Tools.Cpp/workflows/NuGet/badge.svg)](https://github.com/MartinKuschnik/Vcpkg.Protobuf.Tools.Cpp/actions) [![NuGet Status](http://img.shields.io/nuget/v/Vcpkg.Protobuf.Tools.Cpp.svg?style=flat)](https://www.nuget.org/packages/Vcpkg.Protobuf.Tools.Cpp/)
+Protocol Buffer compiler integration for native C++ projects.
