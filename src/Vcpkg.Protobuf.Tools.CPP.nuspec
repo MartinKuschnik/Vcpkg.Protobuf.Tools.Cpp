@@ -2,8 +2,8 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>Vcpkg.Protobuf.Tools.CPP</id>
-    <version>1.0.0</version>
-    <title>Protobuf.Tools.CPP</title>
+    <version>2.0.1</version>
+    <title>Vcpkg.Protobuf.Tools.CPP</title>
     <authors>Martin Kuschnik</authors>
     <owners>Martin Kuschnik</owners>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
@@ -16,6 +16,5 @@
   <files>
     <file src="build\native\Vcpkg.Protobuf.Tools.CPP.proto.xml" target="build\native\Vcpkg.Protobuf.Tools.CPP.proto.xml" />
     <file src="build\native\Vcpkg.Protobuf.Tools.CPP.targets" target="build\native\Vcpkg.Protobuf.Tools.CPP.targets" />
-    <file src="build\native\Vcpkg.Protobuf.Tools.CPP.xml" target="build\native\Vcpkg.Protobuf.Tools.CPP.xml" />
   </files>
 </package>
