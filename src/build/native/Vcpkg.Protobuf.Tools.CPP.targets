@@ -91,14 +91,14 @@
 	-->
 
 	<!-- Stage 1 -->
-	<ItemGroup Condition="Exists('$(ProtobufExePath)')">
+	<ItemGroup>
 
 		<!-- Unfortunately, the detection of file changes in C++ projects does not work as expected, unlike in C# projects. -->
 		<!-- This has the consequence that file changes to a .proto file do not trigger a recompilation. -->
 		<!-- The following approach using CustomBuild solves this problem, but unfortunately has a disadvantage: -->
 		<!-- The ItemType "ProtobufCompile" cannot be specified in the ProjectSchemaDefinitions as expected, because Visual Studio shows the following error when loading the project: -->
 		<!-- Cannot load project with duplicated project items: xxx.proto is included as 'CustomBuild' and as 'ProtobufCompile' item types. -->
-		<CustomBuild Include="@(ProtobufCompile)">
+		<CustomBuild Include="@(ProtobufCompile)" Condition="Exists('$(ProtobufExePath)')">
 			<Outputs>
 				$(ProtobufOutDir)%(Filename).pb.h;
 				$(ProtobufOutDir)%(Filename).pb.cc;
