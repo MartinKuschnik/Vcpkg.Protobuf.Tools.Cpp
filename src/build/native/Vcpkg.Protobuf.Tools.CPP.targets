@@ -144,12 +144,6 @@
 
 	</Target>
 
-	<!-- Configure CustomBuild to run after validation and before C++ compilation -->
-	<PropertyGroup>
-		<CustomBuildAfterTargets>_PrepareProtobufCompilation</CustomBuildAfterTargets>
-		<CustomBuildBeforeTargets>ClCompile</CustomBuildBeforeTargets>
-	</PropertyGroup>
-
 	<!-- Clean protobuf generated files -->
 	<Target Name="ProtobufClean">
 		<Delete Files="@(ProtobufCompile->'$(ProtobufOutDir)%(Filename).pb.h')" />
