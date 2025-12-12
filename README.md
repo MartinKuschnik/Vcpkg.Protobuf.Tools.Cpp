@@ -7,6 +7,8 @@
 
 This NuGet package provides seamless integration of Protocol Buffer (`.proto`) compilation into Visual Studio C++ projects that use vcpkg for dependency management.
 
+> **Note**: If you need gRPC support in addition to Protocol Buffers, consider using [Vcpkg.Grpc.Tools.Cpp](https://github.com/MartinKuschnik/Vcpkg.Grpc.Tools.Cpp) instead.
+
 ---
 
 ## Features
@@ -287,6 +289,7 @@ For detailed version history and changelog, see the [Releases](https://github.co
 - [vcpkg Documentation](https://vcpkg.io/)
 - [NuGet Package](https://www.nuget.org/packages/Vcpkg.Protobuf.Tools.Cpp/)
 - [GitHub Repository](https://github.com/MartinKuschnik/Vcpkg.Protobuf.Tools.Cpp)
+- [Vcpkg.Grpc.Tools.Cpp](https://github.com/MartinKuschnik/Vcpkg.Grpc.Tools.Cpp) - For projects with gRPC support
 
 ---
 
