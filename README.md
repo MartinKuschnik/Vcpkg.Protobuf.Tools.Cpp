@@ -257,6 +257,24 @@ The package uses MSBuild's `CustomBuild` item type with input/output tracking:
 
 ---
 
+## Known Issues
+
+### IntelliSense Not Updating After Proto File Changes
+
+When you modify a `.proto` file, the header file is regenerated correctly, but Visual Studio's IntelliSense database updates only every 60 minutes by default. This can cause IntelliSense to show outdated information.
+
+**Solutions**:
+
+1. **Keep the generated header file open**: Opening the `.pb.h` file in Visual Studio and keeping it open triggers immediate IntelliSense database updates whenever the file changes
+2. **Manual rescan**: Right-click on your project in Solution Explorer ? **Rescan Solution** to manually update the IntelliSense database
+3. **Adjust update interval**: Change the IntelliSense update frequency in Visual Studio settings:
+   - Tools ? Options ? Text Editor ? C/C++ ? Advanced
+   - Modify the "Database Refresh Interval" setting to a lower value
+
+> **Tip**: If you're making frequent changes to `.proto` files, the most effective solution is to keep the generated header files open in Visual Studio. This ensures IntelliSense updates immediately after each build. Alternatively, you can reduce the IntelliSense update interval for a smoother development experience.
+
+---
+
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
