@@ -1,38 +1,42 @@
-# Vcpkg.Protobuf.Tools.Cpp [![build](https://github.com/MartinKuschnik/Vcpkg.Protobuf.Tools.Cpp/workflows/NuGet/badge.svg)](https://github.com/MartinKuschnik/Vcpkg.Protobuf.Tools.Cpp/actions) [![NuGet Status](http://img.shields.io/nuget/v/Vcpkg.Protobuf.Tools.Cpp.svg?style=flat)](https://www.nuget.org/packages/Vcpkg.Protobuf.Tools.Cpp/)
+# Vcpkg.Protobuf.Tools.Cpp 
 
-**MSBuild integration of Protocol Buffers for C++ projects using vcpkg.**
+[![build](https://github.com/MartinKuschnik/Vcpkg.Protobuf.Tools.Cpp/workflows/NuGet/badge.svg)](https://github.com/MartinKuschnik/Vcpkg.Protobuf.Tools.Cpp/actions) 
+[![NuGet Status](http://img.shields.io/nuget/v/Vcpkg.Protobuf.Tools.Cpp.svg?style=flat)](https://www.nuget.org/packages/Vcpkg.Protobuf.Tools.Cpp/)
+
+**Protocol Buffer compiler integration for native C++ projects using vcpkg.**
+
+This NuGet package provides seamless integration of Protocol Buffer (`.proto`) compilation into Visual Studio C++ projects that use vcpkg for dependency management.
 
 ---
 
-## What is this?
+## Features
 
-`Vcpkg.Protobuf.Tools.Cpp` is a NuGet package that seamlessly integrates Protocol Buffers compilation into your C++ project's build process. It automatically compiles `.proto` files into C++ source and header files during build, with full support for incremental builds.
-
-**Key Benefits:**
-- ? Automatic compilation of `.proto` files
-- ? Incremental build support (only changed files are recompiled)
-- ? Works with vcpkg classic and manifest mode
-- ? Visual Studio project system integration
-- ? Zero manual configuration needed
+- **Automatic Compilation**: `.proto` files are automatically compiled during build
+- **Incremental Builds**: Only changed `.proto` files are recompiled (saves build time!)
+- **Per-File Configuration**: Configure compilation settings individually for each `.proto` file
+- **Visual Studio Integration**: Full property page support in Visual Studio
+- **vcpkg Integration**: Works seamlessly with vcpkg's manifest and classic mode
+- **Smart Import Handling**: Flexible import path configuration per file
+- **Zero Configuration**: Works out-of-the-box with sensible defaults
 
 ---
 
 ## Prerequisites
 
-Before using this package, you need:
+- **Visual Studio** (2015 or later) with C++ development tools
+- **Windows** operating system
+- **vcpkg** installed and integrated with Visual Studio
+- **protobuf** package installed via vcpkg
 
-1. **vcpkg** - [Installation Guide](https://github.com/microsoft/vcpkg#getting-started)
-2. **protobuf library** - Install via vcpkg (see below)
+---
 
-### Installing protobuf via vcpkg
+## Quick Start
 
-**Option A: Classic Mode**
-```bash
-vcpkg install protobuf:x64-windows
-vcpkg integrate install
-```
+### 1. Install Required vcpkg Packages
 
-**Option B: Manifest Mode (vcpkg.json)**
+#### Option A: Using vcpkg Manifest Mode (Recommended)
+
+Add to your `vcpkg.json`:
 ```json
 {
   "dependencies": [
@@ -41,43 +45,104 @@ vcpkg integrate install
 }
 ```
 
-Enable manifest mode in your project:
-```xml
-<PropertyGroup>
-  <VcpkgEnableManifest>true</VcpkgEnableManifest>
-</PropertyGroup>
+#### Option B: Using vcpkg Classic Mode
+
+```bash
+vcpkg install protobuf:x64-windows
 ```
 
----
+### 2. Install the NuGet Package
 
-## Installation
+Add the NuGet package to your C++ project:
 
-Install the `Vcpkg.Protobuf.Tools.Cpp` NuGet package into your C++ project.
-
-**Via NuGet Package Manager Console:**
 ```powershell
 Install-Package Vcpkg.Protobuf.Tools.Cpp
 ```
 
-**Via Visual Studio UI:**
-1. Right-click your project ? **Manage NuGet Packages**
-2. Search for `Vcpkg.Protobuf.Tools.Cpp`
-3. Click **Install**
+Or via Package Manager UI in Visual Studio.
 
-**Via .NET CLI:**
-```bash
-dotnet add package Vcpkg.Protobuf.Tools.Cpp
+### 3. Add .proto Files to Your Project
+
+1. Add your `.proto` files to your project
+2. After installing the NuGet package, all `.proto` files are automatically configured with the **ProtobufCompile** item type
+3. **Important**: A restart of Visual Studio may be required for the new item type to be recognized
+
+### 4. Build Your Project
+
+When you build your project, the following files are automatically generated for each `.proto` file (e.g., `messages.proto`):
+- `messages.pb.h` / `messages.pb.cc` - Protocol Buffer message definitions
+
+Generated files are placed in a subdirectory of your project's intermediate directory (typically `x64\Debug\` or `x64\Release\`):
+- `protobuf\` subdirectory - for `.pb.h` and `.pb.cc` files
+
+---
+
+## How It Works
+
+### Build Process
+
+1. **Validation**: Verifies that vcpkg is enabled and the required protobuf tools are installed
+2. **File Selection**: Identifies all `.proto` files marked for compilation in your project
+3. **Up-to-Date Check**: Compares timestamps between source `.proto` files and their generated outputs to determine which files need recompilation
+4. **Compilation**: Executes the Protocol Buffer compiler (`protoc.exe`) for any outdated files
+5. **Integration**: Automatically adds the generated `.cc` files to your project's compilation without cluttering the Solution Explorer
+
+### Generated File Locations
+
+Generated files are organized in your project's intermediate directory:
+
+```
+Intermediate Directory (e.g., x64\Debug\)
+- protobuf\
+  - messages.pb.h
+  - messages.pb.cc
+```
+
+Include paths are automatically configured, so you can simply:
+```cpp
+#include "messages.pb.h"
 ```
 
 ---
 
-## Usage
+## Example Usage
 
-### 1. Add Proto Files to Your Project
+### Simple Message Definition
 
-Simply add `.proto` files to your C++ project. Visual Studio will automatically recognize them.
+**protos/person.proto:**
+```protobuf
+syntax = "proto3";
 
-**Example: `person.proto`**
+package example;
+
+message Person {
+  string name = 1;
+  int32 age = 2;
+  string email = 3;
+}
+```
+
+**main.cpp:**
+```cpp
+#include "person.pb.h"
+#include <iostream>
+
+int main() {
+    example::Person person;
+    person.set_name("John Doe");
+    person.set_age(30);
+    person.set_email("john@example.com");
+    
+    std::cout << "Name: " << person.name() << std::endl;
+    std::cout << "Age: " << person.age() << std::endl;
+    
+    return 0;
+}
+```
+
+### Working with Serialization
+
+**protos/addressbook.proto:**
 ```protobuf
 syntax = "proto3";
 
@@ -94,54 +159,45 @@ message AddressBook {
 }
 ```
 
-### 2. Build Your Project
-
-The `.proto` files are automatically compiled during build. Generated files are placed in:
-```
-$(IntDir)protobuf\
-```
-
-For example:
-- Debug: `x64\Debug\protobuf\person.pb.h` and `person.pb.cc`
-- Release: `x64\Release\protobuf\person.pb.h` and `person.pb.cc`
-
-### 3. Use Generated Code
-
-Include the generated headers in your C++ code:
-
+**main.cpp:**
 ```cpp
-#include "person.pb.h"
-#include <iostream>
+#include "addressbook.pb.h"
 #include <fstream>
+#include <iostream>
 
 int main() {
-    // Create a Person message
-    tutorial::Person person;
-    person.set_name("John Doe");
-    person.set_id(1234);
-    person.set_email("john@example.com");
-
+    tutorial::AddressBook address_book;
+    
+    // Add a person
+    tutorial::Person* person = address_book.add_people();
+    person->set_name("John Doe");
+    person->set_id(1234);
+    person->set_email("john@example.com");
+    
     // Serialize to file
-    std::fstream output("person.bin", std::ios::out | std::ios::binary);
-    if (!person.SerializeToOstream(&output)) {
-        std::cerr << "Failed to write person." << std::endl;
+    std::fstream output("addressbook.bin", std::ios::out | std::ios::binary);
+    if (!address_book.SerializeToOstream(&output)) {
+        std::cerr << "Failed to write address book." << std::endl;
         return -1;
     }
     output.close();
-
+    
     // Deserialize from file
-    tutorial::Person read_person;
-    std::fstream input("person.bin", std::ios::in | std::ios::binary);
-    if (!read_person.ParseFromIstream(&input)) {
-        std::cerr << "Failed to parse person." << std::endl;
+    tutorial::AddressBook read_address_book;
+    std::fstream input("addressbook.bin", std::ios::in | std::ios::binary);
+    if (!read_address_book.ParseFromIstream(&input)) {
+        std::cerr << "Failed to parse address book." << std::endl;
         return -1;
     }
     input.close();
-
-    std::cout << "Name: " << read_person.name() << std::endl;
-    std::cout << "ID: " << read_person.id() << std::endl;
-    std::cout << "Email: " << read_person.email() << std::endl;
-
+    
+    // Read the data
+    for (const auto& p : read_address_book.people()) {
+        std::cout << "Person ID: " << p.id() << std::endl;
+        std::cout << "  Name: " << p.name() << std::endl;
+        std::cout << "  Email: " << p.email() << std::endl;
+    }
+    
     return 0;
 }
 ```
@@ -176,8 +232,8 @@ Or add it to your `vcpkg.json` if using manifest mode.
 ### Proto File Changes Not Detected
 
 This package uses **CustomBuild** items with MSBuild's incremental build tracking. Changes should be detected automatically. If not:
-1. Clean the project (Build ? Clean Solution)
-2. Rebuild (Build ? Rebuild Solution)
+1. Clean the project (Build -> Clean Solution)
+2. Rebuild (Build -> Rebuild Solution)
 
 ### Include Errors in Generated Files
 
@@ -231,7 +287,6 @@ For detailed version history and changelog, see the [Releases](https://github.co
 - [vcpkg Documentation](https://vcpkg.io/)
 - [NuGet Package](https://www.nuget.org/packages/Vcpkg.Protobuf.Tools.Cpp/)
 - [GitHub Repository](https://github.com/MartinKuschnik/Vcpkg.Protobuf.Tools.Cpp)
-- [Vcpkg.Grpc.Tools.Cpp](https://github.com/MartinKuschnik/Vcpkg.Grpc.Tools.Cpp) - For projects with gRPC support
 
 ---
 
