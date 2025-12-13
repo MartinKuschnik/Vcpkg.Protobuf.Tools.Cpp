@@ -130,6 +130,9 @@
 			<ProtoPath>%(ProtobufCompile.RootDir)\%(ProtobufCompile.Directory)</ProtoPath>
 		</PropertyGroup>
 
+		<!-- Required for first build -->
+		<MakeDir Directories="$(ProtobufOutDir)" Condition="!Exists('$(ProtobufOutDir)')" />
+
 		<Exec Command="&quot;$(ProtobufExePath)&quot; --cpp_out=&quot;$(ProtobufOutDir.Trim('\\'))&quot; --proto_path=&quot;$(ProtoPath.Trim('\\'))&quot; &quot;%(ProtobufCompile.FullPath)&quot;" />
 
 	</Target>
