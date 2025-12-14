@@ -59,39 +59,39 @@
 	This would require always doing a rebuild, which is slow and annoying.
 	
 	However, C++ projects do allow the use of CustomBuilds, which always run before vcpkg.
-	But this CustomBuild also have some issues:
+	But these CustomBuilds also have some issues:
 	
-		- Runs very early in the build sequence and unfortunately cannot be moved later (after vcpkg).
+		- Run very early in the build sequence and unfortunately cannot be moved later (after vcpkg).
 		
-		- Condition does not work as expected because the expressions (e.g. Exists(...)) are evaluated only once before any target runs.
+		- Conditions do not work as expected because the expressions (e.g. Exists(...)) are evaluated only once before any target runs.
 		
-		- The CustomBuild can not be defined by a Target, because this would also break change detection.
+		- The required protoc.exe is not yet available on the first build at this moment, because vcpkg runs afterwards.
 		
-		- The required protoc.exe is not yet available on the first build at this moment, because vcpkg runs afterwards
+		- The CustomBuild should be part of a very early Target. Outside a Target it would create wildcard warnings during project loading.
 	
-	To solve these problem, the following process was created:
+	To solve these problems, the following process was created:
 		
 	Stage 1 - Protobuf Configure via Target
 	
-		The target must run before vcpkg and configures the property ProtoCompileTwice depending on whether the protoc.exe already exists before vcpkg runs.
-		This property is used later for Stage 3 to detect if it is necessary to compile a second time after vcpkg.
+		The target must run before vcpkg and creates the CustomBuild (Stage 2) and configures the property ProtoCompileTwice
+		depending on whether the protoc.exe already exists before vcpkg runs.
+		This property is used later in Stage 3 to detect if it is necessary to compile a second time after vcpkg.
 	
 	Stage 2 - Protobuf Compile via CustomBuilds 	
 	
-		Only executes if the protoc.exe file exists.
+		Only invokes the protoc.exe if protoc.exe exists.
 		Since this is the case for most builds, recompilation is performed when a .proto file changes.
 		
 	>>>>>>>>>>>>>>>>>>>>>>>>>     vcpkg runs     <<<<<<<<<<<<<<<<<<<<<<<<<	
 	
 	Stage 3 - Protobuf Compile via Target 
 
-		This step is only executed if Stage 1 configured the Property ProtoCompileTwice to true.
+		This step is only executed if Stage 1 configured the property ProtoCompileTwice to true.
 		This should only be the case very rarely.
 		
 	Stage 4 - Protobuf Finalize via Target 
-	
-		Now the generated files are added to the project so they can be compiled by the C++ compiler.
-	
+		Adds the generated .cc files to the project for compilation by the C++ compiler.
+		The .cc files are not visible in Solution Explorer, which is the desired behavior.
 	-->
 
 	<!-- Stage 1 -->
@@ -103,33 +103,32 @@
 		<PropertyGroup Condition="!Exists('$(ProtobufExePath)')">
 			<ProtoCompileTwice>true</ProtoCompileTwice>
 		</PropertyGroup>
+		
+		<ItemGroup>
+
+			<!-- Stage 2 -->
+
+			<!-- Unfortunately, the detection of file changes in C++ projects does not work as expected, unlike in C# projects. -->
+			<!-- This has the consequence that file changes to a .proto file do not trigger a recompilation. -->
+			<!-- The following approach using CustomBuild solves this problem, but unfortunately has a disadvantage: -->
+			<!-- The ItemType "ProtobufCompile" cannot be specified in the ProjectSchemaDefinitions as expected, because Visual Studio shows the following error when loading the project: -->
+			<!-- Cannot load project with duplicated project items: xxx.proto is included as 'CustomBuild' and as 'ProtobufCompile' item types. -->
+			<CustomBuild Include="@(ProtobufCompile)">
+				<Outputs>
+					$(ProtobufOutDir)%(Filename).pb.h;
+					$(ProtobufOutDir)%(Filename).pb.cc;
+				</Outputs>
+				<Message>%(Filename)%(Extension)</Message>
+				<Command>
+					IF EXIST "$(ProtobufExePath)" (
+					"$(ProtobufExePath)" --cpp_out="$(ProtobufOutDir.Trim('\\'))" --proto_path=%(RootDir)%(Directory) %(FullPath)
+					)
+				</Command>
+			</CustomBuild>
+
+		</ItemGroup>
 
 	</Target>
-
-
-	<ItemGroup>
-
-		<!-- Stage 2 -->
-
-		<!-- Unfortunately, the detection of file changes in C++ projects does not work as expected, unlike in C# projects. -->
-		<!-- This has the consequence that file changes to a .proto file do not trigger a recompilation. -->
-		<!-- The following approach using CustomBuild solves this problem, but unfortunately has a disadvantage: -->
-		<!-- The ItemType "ProtobufCompile" cannot be specified in the ProjectSchemaDefinitions as expected, because Visual Studio shows the following error when loading the project: -->
-		<!-- Cannot load project with duplicated project items: xxx.proto is included as 'CustomBuild' and as 'ProtobufCompile' item types. -->
-		<CustomBuild Include="@(ProtobufCompile)">
-			<Outputs>
-				$(ProtobufOutDir)%(Filename).pb.h;
-				$(ProtobufOutDir)%(Filename).pb.cc;
-			</Outputs>
-			<Message>%(Filename)%(Extension)</Message>
-			<Command>
-				IF EXIST "$(ProtobufExePath)" (
-				"$(ProtobufExePath)" --cpp_out="$(ProtobufOutDir.Trim('\\'))" --proto_path=%(RootDir)%(Directory) %(FullPath)
-				)
-			</Command>
-		</CustomBuild>
-
-	</ItemGroup>
 
 	<!-- Stage 3 -->
 	<Target Name="ProtobufCompile" AfterTargets="$(ProtobufAfterTargets)" Condition="$(ProtoCompileTwice)"
