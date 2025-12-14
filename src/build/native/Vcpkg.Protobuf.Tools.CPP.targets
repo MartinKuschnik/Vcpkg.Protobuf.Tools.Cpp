@@ -14,11 +14,11 @@
 
 	<!-- Determine the vcpkg installation directory based on project configuration -->
 	<PropertyGroup Condition="$(VcpkgInstalledDir)==''">
-		<VcpkgInstallDir>$(VcpkgRoot.TrimEnd('\\'))\installed\x64-windows\</VcpkgInstallDir>
+		<VcpkgInstallDir>$(VcpkgRoot.TrimEnd('\'))\installed\x64-windows\</VcpkgInstallDir>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="$(VcpkgInstalledDir)!=''">
-		<VcpkgInstallDir>$(VcpkgInstalledDir.TrimEnd('\\'))\x64-windows\</VcpkgInstallDir>
+		<VcpkgInstallDir>$(VcpkgInstalledDir.TrimEnd('\'))\x64-windows\</VcpkgInstallDir>
 	</PropertyGroup>
 
 	<!-- Configure when protobuf generation should run based on vcpkg manifest mode -->
