@@ -14,11 +14,11 @@
 
 	<!-- Determine the vcpkg installation directory based on project configuration -->
 	<PropertyGroup Condition="$(VcpkgInstalledDir)==''">
-		<VcpkgInstallDir>$(VcpkgRoot.Trim('\\'))\installed\x64-windows\</VcpkgInstallDir>
+		<VcpkgInstallDir>$(VcpkgRoot.TrimEnd('\\'))\installed\x64-windows\</VcpkgInstallDir>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="$(VcpkgInstalledDir)!=''">
-		<VcpkgInstallDir>$(VcpkgInstalledDir.Trim('\\'))\x64-windows\</VcpkgInstallDir>
+		<VcpkgInstallDir>$(VcpkgInstalledDir.TrimEnd('\\'))\x64-windows\</VcpkgInstallDir>
 	</PropertyGroup>
 
 	<!-- Configure when protobuf generation should run based on vcpkg manifest mode -->
@@ -103,7 +103,10 @@
 		<PropertyGroup Condition="!Exists('$(ProtobufExePath)')">
 			<ProtoCompileTwice>true</ProtoCompileTwice>
 		</PropertyGroup>
-		
+
+		<!-- Required for first build -->
+		<MakeDir Directories="$(ProtobufOutDir)" Condition="!Exists('$(ProtobufOutDir)')" />
+
 		<ItemGroup>
 
 			<!-- Stage 2 -->
@@ -121,7 +124,7 @@
 				<Message>%(Filename)%(Extension)</Message>
 				<Command>
 					IF EXIST "$(ProtobufExePath)" (
-					"$(ProtobufExePath)" --cpp_out="$(ProtobufOutDir.Trim('\\'))" --proto_path=%(RootDir)%(Directory) %(FullPath)
+						"$(ProtobufExePath)" --cpp_out="$(ProtobufOutDir.TrimEnd('\'))" --proto_path="$([System.String]::Copy('%(RootDir)%(Directory)').TrimEnd('\'))" "%(FullPath)"
 					)
 				</Command>
 			</CustomBuild>
@@ -139,16 +142,9 @@
 		<Error Condition="!Exists('$(ProtobufExePath)') AND $(VcpkgEnableManifest)!='true'" Text="protobuf not installed. Use 'vcpkg install protobuf:$(PlatformTarget)-windows' to install Protobuf." />
 		<Error Condition="!Exists('$(ProtobufExePath)') AND $(VcpkgEnableManifest)=='true'" Text="protobuf not found. Add protobuf as dependency to the 'vcpkg.json' file." />
 
-		<PropertyGroup>
-			<ProtoPath>%(ProtobufCompile.RootDir)\%(ProtobufCompile.Directory)</ProtoPath>
-		</PropertyGroup>
-
-		<!-- Required for first build -->
-		<MakeDir Directories="$(ProtobufOutDir)" Condition="!Exists('$(ProtobufOutDir)')" />
-
 		<Message Text="%(ProtobufCompile.Filename)%(ProtobufCompile.Extension)" Importance="high" />
 
-		<Exec Command="&quot;$(ProtobufExePath)&quot; --cpp_out=&quot;$(ProtobufOutDir.Trim('\\'))&quot; --proto_path=&quot;$(ProtoPath.Trim('\\'))&quot; &quot;%(ProtobufCompile.FullPath)&quot;" />
+		<Exec Command="&quot;$(ProtobufExePath)&quot; --cpp_out=&quot;$(ProtobufOutDir.TrimEnd('\'))&quot; --proto_path=&quot;$([System.String]::Copy('%(ProtobufCompile.RootDir)\%(ProtobufCompile.Directory)').TrimEnd('\'))&quot; &quot;%(ProtobufCompile.FullPath)&quot;" />
 
 	</Target>
 
